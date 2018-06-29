@@ -7,12 +7,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.List;
 
 
 public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
 
-    private List<String> values;
+    private List<JSONObject> values;
 
     public class StockViewHolder extends RecyclerView.ViewHolder {
         public TextView txtHeader;
@@ -27,7 +30,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
         }
     }
 
-    public void add(int position, String item) {
+    public void add(int position, JSONObject item) {
         values.add(position, item);
         notifyItemInserted(position);
     }
@@ -37,7 +40,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
         notifyItemRemoved(position);
     }
 
-    public StockAdapter(List<String> myDataset) {
+    public StockAdapter(List<JSONObject> myDataset) {
         values = myDataset;
     }
 
@@ -57,16 +60,21 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
 
     @Override
     public void onBindViewHolder(StockAdapter.StockViewHolder holder, final int position) {
-        final String name = values.get(position);
-        holder.txtHeader.setText(name);
-        holder.txtHeader.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                remove(position);
-            }
-        });
+        final JSONObject data = values.get(position);
+        try {
+            holder.txtHeader.setText(data.getString("test"));
+            holder.txtHeader.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    remove(position);
+                }
+            });
 
-        holder.txtFooter.setText("Footer: " + name);
+            holder.txtFooter.setText("Footer: " + data.getString("test"));
+        }
+        catch(JSONException json){
+
+        }
     }
 
     @Override

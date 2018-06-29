@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,10 +27,18 @@ public class MainActivity extends AppCompatActivity {
         String testThings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(KEY_PREFERENCES_PORTFOLIO, null);
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        List<String> input = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            input.add("Test" + i);
-        }// define an adapter
+        List<JSONObject> input = new ArrayList<>();
+        try {
+            for (int i = 0; i < 100; i++) {
+                JSONObject jsonPlaceHolder = new JSONObject();
+
+                jsonPlaceHolder.put("test", "value" + String.valueOf(i));
+                input.add(jsonPlaceHolder);
+            }// define an adapter
+        }
+        catch(JSONException jsone){
+
+        }
         mAdapter = new StockAdapter(input);
         mRecyclerView.setAdapter(mAdapter);
 
