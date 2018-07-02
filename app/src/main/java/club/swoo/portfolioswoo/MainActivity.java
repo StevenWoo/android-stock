@@ -1,12 +1,19 @@
 package club.swoo.portfolioswoo;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import org.greenrobot.eventbus.EventBus;
@@ -40,12 +47,41 @@ public class MainActivity extends AppCompatActivity {
 
     private String KEY_PREFERENCES_PORTFOLIO = "portfolio.v1";
 
+    private String m_Text = "";
+    private void getSymbolFromUser(Context context, View view){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Stock symbol");
 
-    private void getQuote(){
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setHint(context.getString(R.string.stock_hint));
+        builder.setView(input);
+
+// Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                m_Text = input.getText().toString();
+                Log.i(TAG, m_Text);
+                getQuote(m_Text);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
+    }
+
+    private void getQuote(String symbol){
         OkHttpClient client = new OkHttpClient();
 
-        String test_url1 = "https://api.iextrading.com/1.0/stock/AAPL/quote";
 
+        String test_url0 = "https://api.iextrading.com/1.0/stock/%s/quote";
+
+        String test_url1 = String.format(test_url0, symbol);
         HttpUrl.Builder urlBuilder1 = HttpUrl.parse(test_url1).newBuilder();
         String url1 = urlBuilder1.build().toString();
 
@@ -165,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Log.i(TAG, "hello click");
+                getSymbolFromUser(getApplicationContext(), view);
             }
         });
         mRecyclerView = findViewById(R.id.stock_recycler_view);
@@ -177,7 +214,6 @@ public class MainActivity extends AppCompatActivity {
         List<JSONObject> input = new ArrayList<>();
         mAdapter = new StockAdapter(input);
         mRecyclerView.setAdapter(mAdapter);
-        getQuote();
 
         batchGetQuote();
 

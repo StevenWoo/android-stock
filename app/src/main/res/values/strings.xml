@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Portfolio SWoo</string>
+    <string name="stock_hint">enter symbol here!</string>
 </resources>
