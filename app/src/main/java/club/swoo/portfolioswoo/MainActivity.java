@@ -9,6 +9,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -85,6 +88,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(EventBatchQuotesDone eventBatchQuotesDone){
+        if( eventBatchQuotesDone.mResult == true) {
+            mAdapter = new StockAdapter(eventBatchQuotesDone.mJsonData);
+            mRecyclerView.swapAdapter(mAdapter, true);
+        }
+
+    }
+
     private void batchGetQuote(){
         String test_url2 = "https://api.iextrading.com/1.0/stock/market/batch?symbols=" + "INTC" + ",MSFT" + "&types=quote";
         OkHttpClient client = new OkHttpClient();
@@ -105,13 +118,16 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call call, Response response) throws IOException {
 
                 final String myResponse = response.body().string();
-
+                EventBatchQuotesDone eventBatchQuotesDone = new EventBatchQuotesDone();
+                eventBatchQuotesDone.mResult = false;
 
                 try {
                     JSONObject json = new JSONObject(myResponse);
-                    Log.d("test x", json.toString());
+                    Log.d(TAG, json.toString());
 
                     Iterator<?> keys = json.keys();
+                    List<JSONObject> input = new ArrayList<>();
+                    eventBatchQuotesDone.mResult = true;
 
                     while( keys.hasNext() ) {
                         String key = (String)keys.next();
@@ -120,17 +136,21 @@ public class MainActivity extends AppCompatActivity {
                                 JSONObject jsonSub = json.getJSONObject(key);
                                 Log.i("TAG", jsonSub.toString());
                                 JSONObject jsonQuote = jsonSub.getJSONObject("quote");
+                                input.add(jsonQuote);
 
                             }
                             catch(Exception ex){
-
+                                eventBatchQuotesDone.mResult = false;
                             }
+
                         }
                     }
+                    eventBatchQuotesDone.mJsonData = input;
                 }
                 catch(JSONException jsone){
-
+                    eventBatchQuotesDone.mResult = false;
                 }
+                EventBus.getDefault().post(eventBatchQuotesDone);
             }
         });
 
@@ -155,22 +175,23 @@ public class MainActivity extends AppCompatActivity {
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
         List<JSONObject> input = new ArrayList<>();
-        try {
-            for (int i = 0; i < 100; i++) {
-                JSONObject jsonPlaceHolder = new JSONObject();
-
-                jsonPlaceHolder.put("test", "value" + String.valueOf(i));
-                input.add(jsonPlaceHolder);
-            }// define an adapter
-        }
-        catch(JSONException jsone){
-
-        }
         mAdapter = new StockAdapter(input);
         mRecyclerView.setAdapter(mAdapter);
         getQuote();
 
         batchGetQuote();
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
     }
 }

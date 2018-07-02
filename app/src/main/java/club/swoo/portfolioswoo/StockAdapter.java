@@ -62,7 +62,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
     public void onBindViewHolder(StockAdapter.StockViewHolder holder, final int position) {
         final JSONObject data = values.get(position);
         try {
-            holder.txtHeader.setText(data.getString("test"));
+            holder.txtHeader.setText(data.getString("symbol"));
             holder.txtHeader.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -70,7 +70,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
                 }
             });
 
-            holder.txtFooter.setText("Footer: " + data.getString("test"));
+            holder.txtFooter.setText("Footer: " + data.getString("companyName"));
         }
         catch(JSONException json){
 
