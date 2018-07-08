@@ -134,8 +134,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void batchGetQuote(){
-        String test_url2 = "https://api.iextrading.com/1.0/stock/market/batch?symbols=" + "INTC" + ",MSFT" + "&types=quote";
+    private void batchGetQuote(String symbols){
+        String test_url1 = "https://api.iextrading.com/1.0/stock/market/batch?symbols=%s&types=quote";
+
+        String test_url2 = String.format(test_url1, symbols);
+
+//        String test_url2 = "https://api.iextrading.com/1.0/stock/market/batch?symbols=" + "INTC" + ",MSFT" + "&types=quote";
         OkHttpClient client = new OkHttpClient();
 
         HttpUrl.Builder urlBuilder2 = HttpUrl.parse(test_url2).newBuilder();
@@ -215,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
         mAdapter = new StockAdapter(input);
         mRecyclerView.setAdapter(mAdapter);
 
-        batchGetQuote();
+        batchGetQuote("MSFT,INTC");
 
     }
 
