@@ -99,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
 
                 final String myResponse = response.body().string();
 
-
                 try {
                     JSONObject json = new JSONObject(myResponse);
                     Log.d(TAG, json.toString());
@@ -132,20 +131,17 @@ public class MainActivity extends AppCompatActivity {
             mRecyclerView.swapAdapter(mAdapter, true);
             if(!eventBatchQuotesDone.mJSONData.isEmpty()) {
                 // move from list to JSONArray to serialize
-                int size = eventBatchQuotesDone.mJSONData.size();
-                JSONArray jsonArray = new JSONArray();
-                for( int idx = 0; idx < size; ++idx){
-                    jsonArray.put(eventBatchQuotesDone.mJSONData.get(idx));
-                }
-                String stringOutput = jsonArray.toString();
+//                int size = eventBatchQuotesDone.mJSONData.size();
+                JSONArray jsonArray = new JSONArray(eventBatchQuotesDone.mJSONData);
+//                for( int idx = 0; idx < size; ++idx){
+//                    jsonArray.put(eventBatchQuotesDone.mJSONData.get(idx));
+//                }
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).
                         edit().
-                        putString(KEY_PREFERENCES_PORTFOLIO,stringOutput).
+                        putString(KEY_PREFERENCES_PORTFOLIO, jsonArray.toString()).
                         commit();
 
-
             }
-
         }
     }
 
@@ -154,6 +150,22 @@ public class MainActivity extends AppCompatActivity {
     public void onMessageEvent(EventQuoteDone eventQuoteDone){
         if( eventQuoteDone.mResult == true) {
             Log.i(TAG, "test");
+            if( eventQuoteDone.mJSONData != null) {
+                // need to
+                //  a.) update adapter
+                //  b.) save list serialized to preferences
+                List<JSONObject> updatedList = mAdapter.getValues();
+                updatedList.add(eventQuoteDone.mJSONData);
+                mAdapter = new StockAdapter(updatedList);
+                mRecyclerView.swapAdapter(mAdapter, true);
+                JSONArray jsonNewSave = new JSONArray(updatedList);
+                PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).
+                        edit().
+                        putString(KEY_PREFERENCES_PORTFOLIO, jsonNewSave.toString()).
+                        commit();
+
+            }
+
         }
     }
 
@@ -218,25 +230,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        mButtonImage = findViewById(R.id.imageView1);
-        mButtonImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.i(TAG, "hello click");
-                getSymbolFromUser(getApplicationContext(), view);
-            }
-        });
-        mRecyclerView = findViewById(R.id.stock_recycler_view);
-        mRecyclerView.setHasFixedSize(true);
-
-        String testThings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(KEY_PREFERENCES_PORTFOLIO, null);
-
+    private String constructSymbolList(){
         String quotesList = "";
+        String testThings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(KEY_PREFERENCES_PORTFOLIO, null);
         if( testThings != null){
             try {
                 JSONArray jsonArrayThings = new JSONArray(testThings);
@@ -256,13 +253,32 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "JSON Exception");
             }
         }
+        return quotesList;
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        mButtonImage = findViewById(R.id.imageView1);
+        mButtonImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.i(TAG, "hello click");
+                getSymbolFromUser(getApplicationContext(), view);
+            }
+        });
+        mRecyclerView = findViewById(R.id.stock_recycler_view);
+        mRecyclerView.setHasFixedSize(true);
+
+        String quotesList = constructSymbolList();
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
         List<JSONObject> input = new ArrayList<>();
         mAdapter = new StockAdapter(input);
         mRecyclerView.setAdapter(mAdapter);
 
-//        batchGetQuote("MSFT,INTC");
         IntentServiceQuotes.startActionBatchQuotes(getApplicationContext(), quotesList);
 
     }

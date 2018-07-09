@@ -81,4 +81,8 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
     public void onBindViewHolder(StockAdapter.StockViewHolder holder, int position, List<Object> payloads) {
         super.onBindViewHolder(holder, position, payloads);
     }
+
+    public List<JSONObject> getValues() {
+        return values;
+    }
 }
