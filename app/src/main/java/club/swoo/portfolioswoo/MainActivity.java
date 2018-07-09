@@ -10,15 +10,14 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -128,8 +127,25 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(EventBatchQuotesDone eventBatchQuotesDone){
         if( eventBatchQuotesDone.mResult == true) {
+
             mAdapter = new StockAdapter(eventBatchQuotesDone.mJSONData);
             mRecyclerView.swapAdapter(mAdapter, true);
+            if(!eventBatchQuotesDone.mJSONData.isEmpty()) {
+                // move from list to JSONArray to serialize
+                int size = eventBatchQuotesDone.mJSONData.size();
+                JSONArray jsonArray = new JSONArray();
+                for( int idx = 0; idx < size; ++idx){
+                    jsonArray.put(eventBatchQuotesDone.mJSONData.get(idx));
+                }
+                String stringOutput = jsonArray.toString();
+                PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).
+                        edit().
+                        putString(KEY_PREFERENCES_PORTFOLIO,stringOutput).
+                        commit();
+
+
+            }
+
         }
     }
 
@@ -220,6 +236,26 @@ public class MainActivity extends AppCompatActivity {
 
         String testThings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(KEY_PREFERENCES_PORTFOLIO, null);
 
+        String quotesList = "";
+        if( testThings != null){
+            try {
+                JSONArray jsonArrayThings = new JSONArray(testThings);
+                if(jsonArrayThings.length() > 0 ){
+                    // have starting symbols
+                    int length = jsonArrayThings.length();
+                    for( int idx = 0; idx < length; ++idx){
+                        JSONObject oneQuote = jsonArrayThings.getJSONObject(idx);
+                        if( idx > 0 ){
+                            quotesList = quotesList + ",";
+                        }
+                        quotesList = quotesList + oneQuote.getString("symbol");
+                    }
+                }
+            }
+            catch(JSONException jsonE){
+                Log.i(TAG, "JSON Exception");
+            }
+        }
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
         List<JSONObject> input = new ArrayList<>();
@@ -227,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(mAdapter);
 
 //        batchGetQuote("MSFT,INTC");
-        IntentServiceQuotes.startActionBatchQuotes(getApplicationContext(), "MSFT,INTC");
+        IntentServiceQuotes.startActionBatchQuotes(getApplicationContext(), quotesList);
 
     }
 
