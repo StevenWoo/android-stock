@@ -8,11 +8,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private String BATCH_QUOTE_URL = "https://api.iextrading.com/1.0/stock/market/batch?symbols=%s&types=quote";
 
     private String QUOTE_URL = "https://api.iextrading.com/1.0/stock/%s/quote";
+    private final String KEY_SYMBOL= "symbol";
 
 
     private String KEY_PREFERENCES_PORTFOLIO = "portfolio.v1";
@@ -102,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     JSONObject json = new JSONObject(myResponse);
                     Log.d(TAG, json.toString());
-                    final String KEY_SYMBOL= "symbol";
                     final String KEY_COMPANY_NAME = "companyName";
                     final String KEY_LATEST_PRICE = "latestPrice";
                     final String KEY_PERCENT_CHANGE = "changePercent";
@@ -280,7 +282,63 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(mAdapter);
 
         IntentServiceQuotes.startActionBatchQuotes(getApplicationContext(), quotesList);
+        ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT | ItemTouchHelper.DOWN | ItemTouchHelper.UP) {
 
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                Toast.makeText(MainActivity.this, "", Toast.LENGTH_SHORT).show();
+                //Remove swiped item from list and notify the RecyclerView
+
+                int position = viewHolder.getAdapterPosition();
+
+
+                List<JSONObject> updatedList = mAdapter.getValues();
+                if( position < updatedList.size()){
+                    JSONObject deleteObject = updatedList.get(position);
+                    try {
+                        String symbolToDelete = deleteObject.getString(KEY_SYMBOL);
+                        String testThings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(KEY_PREFERENCES_PORTFOLIO, null);
+                        if (testThings != null) {
+                            JSONArray jsonArrayThings = new JSONArray(testThings);
+                            JSONArray jsonNewArray = new JSONArray();
+                            // convert jsonarray to list<JSONObject for adapter>
+                            List<JSONObject> newAdapterData = new ArrayList<>();
+
+                            if (jsonArrayThings.length() > 0) {
+                                for (int i = 0, len = jsonArrayThings.length(); i < len; i++) {
+                                    JSONObject obj = jsonArrayThings.getJSONObject(i);
+                                    String val = jsonArrayThings.getJSONObject(i).getString(KEY_SYMBOL);
+                                    if (!val.equals(symbolToDelete)) {
+                                        jsonNewArray.put(obj);
+                                        newAdapterData.add(obj);
+                                    }
+                                }
+                            }
+                            PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).
+                                    edit().
+                                    putString(KEY_PREFERENCES_PORTFOLIO, jsonNewArray.toString()).
+                                    commit();
+
+                            mAdapter = new StockAdapter(newAdapterData);
+                            mRecyclerView.swapAdapter(mAdapter, true);
+
+
+                        }
+                    }
+                    catch(JSONException jsonE){
+                        Log.i(TAG, "JSON exception");
+                    }
+                }
+
+            }
+        };
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+        itemTouchHelper.attachToRecyclerView(mRecyclerView);
     }
 
     @Override
