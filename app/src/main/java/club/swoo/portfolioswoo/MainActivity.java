@@ -65,7 +65,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 m_Text = input.getText().toString();
                 Log.i(TAG, m_Text);
-                getQuote(m_Text);
+                //getQuote(m_Text);
+                IntentServiceQuotes.startActionQuote(getApplicationContext(), m_Text);
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -80,12 +81,12 @@ public class MainActivity extends AppCompatActivity {
     private void getQuote(String symbol){
         OkHttpClient client = new OkHttpClient();
 
-        String test_url1 = String.format(QUOTE_URL, symbol);
-        HttpUrl.Builder urlBuilder1 = HttpUrl.parse(test_url1).newBuilder();
-        String url1 = urlBuilder1.build().toString();
+        String urlString = String.format(QUOTE_URL, symbol);
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(urlString).newBuilder();
+        String url = urlBuilder.build().toString();
 
         Request request1 = new Request.Builder()
-                .url(url1)
+                .url(url)
                 .build();
 
         client.newCall(request1).enqueue(new Callback() {
@@ -127,23 +128,32 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(EventBatchQuotesDone eventBatchQuotesDone){
         if( eventBatchQuotesDone.mResult == true) {
-            mAdapter = new StockAdapter(eventBatchQuotesDone.mJsonData);
+            mAdapter = new StockAdapter(eventBatchQuotesDone.mJSONData);
             mRecyclerView.swapAdapter(mAdapter, true);
         }
-
     }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(EventQuoteDone eventQuoteDone){
+        if( eventQuoteDone.mResult == true) {
+            Log.i(TAG, "test");
+        }
+    }
+
+
 
     private void batchGetQuote(String symbols){
 
-        String test_url2 = String.format(BATCH_QUOTE_URL, symbols);
+        String stringUrl = String.format(BATCH_QUOTE_URL, symbols);
 
         OkHttpClient client = new OkHttpClient();
 
-        HttpUrl.Builder urlBuilder2 = HttpUrl.parse(test_url2).newBuilder();
-        String url2 = urlBuilder2.build().toString();
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(stringUrl).newBuilder();
+        String url = urlBuilder.build().toString();
 
         Request request2 = new Request.Builder()
-                .url(url2)
+                .url(url)
                 .build();
         client.newCall(request2).enqueue(new Callback() {
             @Override
@@ -182,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
 
                         }
                     }
-                    eventBatchQuotesDone.mJsonData = input;
+                    eventBatchQuotesDone.mJSONData = input;
                 }
                 catch(JSONException jsone){
                     eventBatchQuotesDone.mResult = false;
@@ -216,7 +226,8 @@ public class MainActivity extends AppCompatActivity {
         mAdapter = new StockAdapter(input);
         mRecyclerView.setAdapter(mAdapter);
 
-        batchGetQuote("MSFT,INTC");
+//        batchGetQuote("MSFT,INTC");
+        IntentServiceQuotes.startActionBatchQuotes(getApplicationContext(), "MSFT,INTC");
 
     }
 

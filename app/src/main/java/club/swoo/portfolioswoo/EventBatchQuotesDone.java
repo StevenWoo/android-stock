@@ -6,5 +6,5 @@ import java.util.List;
 
 public class EventBatchQuotesDone {
     public boolean mResult;
-    public List<JSONObject> mJsonData;
+    public List<JSONObject> mJSONData;
 }
