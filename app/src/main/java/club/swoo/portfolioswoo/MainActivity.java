@@ -42,8 +42,10 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView.LayoutManager mLayoutManager;
     private ImageView mButtonImage;
 
-    private String BATCH_QUOTE_URL = "https://api.iextrading.com/1.0/stock/market/batch?symbols=%@&types=quote";
-    private String QUOTE_URL = "https://api.iextrading.com/1.0/stock/%@/quote";
+    private String BATCH_QUOTE_URL = "https://api.iextrading.com/1.0/stock/market/batch?symbols=%s&types=quote";
+
+    private String QUOTE_URL = "https://api.iextrading.com/1.0/stock/%s/quote";
+
 
     private String KEY_PREFERENCES_PORTFOLIO = "portfolio.v1";
 
@@ -78,10 +80,7 @@ public class MainActivity extends AppCompatActivity {
     private void getQuote(String symbol){
         OkHttpClient client = new OkHttpClient();
 
-
-        String test_url0 = "https://api.iextrading.com/1.0/stock/%s/quote";
-
-        String test_url1 = String.format(test_url0, symbol);
+        String test_url1 = String.format(QUOTE_URL, symbol);
         HttpUrl.Builder urlBuilder1 = HttpUrl.parse(test_url1).newBuilder();
         String url1 = urlBuilder1.build().toString();
 
@@ -135,11 +134,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void batchGetQuote(String symbols){
-        String test_url1 = "https://api.iextrading.com/1.0/stock/market/batch?symbols=%s&types=quote";
 
-        String test_url2 = String.format(test_url1, symbols);
+        String test_url2 = String.format(BATCH_QUOTE_URL, symbols);
 
-//        String test_url2 = "https://api.iextrading.com/1.0/stock/market/batch?symbols=" + "INTC" + ",MSFT" + "&types=quote";
         OkHttpClient client = new OkHttpClient();
 
         HttpUrl.Builder urlBuilder2 = HttpUrl.parse(test_url2).newBuilder();
