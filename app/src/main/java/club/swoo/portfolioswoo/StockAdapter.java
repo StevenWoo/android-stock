@@ -1,7 +1,7 @@
 package club.swoo.portfolioswoo;
 
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,18 +15,21 @@ import java.util.List;
 
 public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
 
+    private final String TAG = "StockAdapter";
     private List<JSONObject> values;
 
     public class StockViewHolder extends RecyclerView.ViewHolder {
-        public TextView txtHeader;
-        public TextView txtFooter;
+        public TextView mSymbol;
+        public TextView mPrice;
+        public TextView mDescription;
         public View layout;
 
         public StockViewHolder(View v){
             super(v);
             layout = v;
-            txtHeader = v.findViewById(R.id.firstLine);
-            txtFooter = v.findViewById(R.id.secondLine);
+            mSymbol = v.findViewById(R.id.symbolField);
+            mDescription = v.findViewById(R.id.companyNameField);
+            mPrice = v.findViewById(R.id.priceField);
         }
     }
 
@@ -62,18 +65,19 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
     public void onBindViewHolder(StockAdapter.StockViewHolder holder, final int position) {
         final JSONObject data = values.get(position);
         try {
-            holder.txtHeader.setText(data.getString("symbol"));
-            holder.txtHeader.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    remove(position);
-                }
-            });
+            holder.mSymbol.setText(data.getString(FieldKeyConstants.KEY_SYMBOL));
+//            holder.mSymbol.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    remove(position);
+//                }
+//            });
 
-            holder.txtFooter.setText("Footer: " + data.getString("companyName"));
+            holder.mDescription.setText(data.getString(FieldKeyConstants.KEY_COMPANY_NAME));
+            holder.mPrice.setText(data.getString(FieldKeyConstants.KEY_LATEST_PRICE));
         }
         catch(JSONException json){
-
+            Log.i(TAG, "JSONException");
         }
     }
 

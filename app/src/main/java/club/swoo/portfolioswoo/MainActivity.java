@@ -46,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
     private String BATCH_QUOTE_URL = "https://api.iextrading.com/1.0/stock/market/batch?symbols=%s&types=quote";
 
     private String QUOTE_URL = "https://api.iextrading.com/1.0/stock/%s/quote";
-    private final String KEY_SYMBOL= "symbol";
 
 
     private String KEY_PREFERENCES_PORTFOLIO = "portfolio.v1";
@@ -109,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                     final String KEY_LATEST_PRICE = "latestPrice";
                     final String KEY_PERCENT_CHANGE = "changePercent";
 
-                    String symbol = json.getString(KEY_SYMBOL);
+                    String symbol = json.getString(FieldKeyConstants.KEY_SYMBOL);
                     String company_name = json.getString(KEY_COMPANY_NAME);
                     String latest_price = json.getString(KEY_LATEST_PRICE);
                     double percent_change = json.getDouble(KEY_PERCENT_CHANGE);
@@ -301,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
                 if( position < updatedList.size()){
                     JSONObject deleteObject = updatedList.get(position);
                     try {
-                        String symbolToDelete = deleteObject.getString(KEY_SYMBOL);
+                        String symbolToDelete = deleteObject.getString(FieldKeyConstants.KEY_SYMBOL);
                         String testThings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(KEY_PREFERENCES_PORTFOLIO, null);
                         if (testThings != null) {
                             JSONArray jsonArrayThings = new JSONArray(testThings);
@@ -312,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
                             if (jsonArrayThings.length() > 0) {
                                 for (int i = 0, len = jsonArrayThings.length(); i < len; i++) {
                                     JSONObject obj = jsonArrayThings.getJSONObject(i);
-                                    String val = jsonArrayThings.getJSONObject(i).getString(KEY_SYMBOL);
+                                    String val = jsonArrayThings.getJSONObject(i).getString(FieldKeyConstants.KEY_SYMBOL);
                                     if (!val.equals(symbolToDelete)) {
                                         jsonNewArray.put(obj);
                                         newAdapterData.add(obj);
